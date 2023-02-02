@@ -12,3 +12,6 @@ Telegram bot for autoscout24.it written in Python which scrapes (for research pu
     - API_TOKEN = your Telegram API token for the bot
     - CHAT_ID = the ID of the chat/channel you want to send the messages to. To find the id, simply send a message in the chat/channel and forward it to https://t.me/JsonDumpBot. In the response you will find the chat ID
 - Run the main.py
+
+## To do
+[ ] Add logging levels instead of printing everything

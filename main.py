@@ -28,7 +28,7 @@ def start(url, last_id, bot):
         # Build and send the messages via telegram
         for res in results:
             message = [
-                f"<b>{res['title']}</b>\n",
+                f"<a href='{res['url']}'><b>{res['title']}</b></a>\n",
                 f"Anno: {res['year']}\n",
                 f"Chilometraggio: {res['kilometers']}\n",
                 f"Potenza: {res['horsepower']}\n",
@@ -40,8 +40,7 @@ def start(url, last_id, bot):
                 f"Inquinamento: {res['co2']}\n",
                 f"Venditore: {res['seller_type']}\n",
                 f"Località: {res['seller_location']}\n",
-                f"<b>PREZZO</b>: €{res['price_euro']}\n",
-                f"\n<a href='{res['url']}'>Link</a>"
+                f"<b>PREZZO</b>: €{res['price_euro']}\n"
             ]
             message = ''.join(message)
             dp = bot.get_dispatcher()
@@ -60,7 +59,6 @@ def start(url, last_id, bot):
         # By design, the first request only scrapes the first page
         if previous_last_id == "":
             break
-    print(f"scraped {n_page} pages")
     return last_id
 
 

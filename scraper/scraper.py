@@ -8,10 +8,14 @@ def scrape(url, last_id):
 
     :param url: Url to scrape
     :param last_id: ID of the last listing from the previously scraped results
-    :return: Array of car listings
+    :return: True if the previous id was found (for pagination) and an array of car listings
     """
     res = request('get', url, headers={
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; rv:106.0) Gecko/20100101 Firefox/106.0'})
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; rv:109.0) Gecko/20100101 Firefox/109.0',
+                  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                  'Accept-Encoding': 'gzip, deflate, br'
+                  }
+                  )
     if res.ok:
         soup = BeautifulSoup(res.text, 'lxml')
         listings = soup.find_all("article")
@@ -46,5 +50,4 @@ def scrape(url, last_id):
                 break
         return found_previous_id, to_return
     else:
-        print(res.status_code)
-        return []
+        raise Exception("Error while scraping")
