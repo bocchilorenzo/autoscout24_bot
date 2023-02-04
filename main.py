@@ -5,7 +5,9 @@ from telegram_module import telegram
 from aiogram.utils import executor
 from scraper import scraper
 import time
+from json import load
 
+text = load(open('multilanguage.json', 'r', encoding='utf-8'))
 
 def start(url, last_id, bot):
     """
@@ -18,29 +20,32 @@ def start(url, last_id, bot):
     """
     n_page = 0
     found_previous_id = False
+    domain = url.split("/")[2].split(".")[-1]
+    domain = "en" if domain == "com" else domain
 
     while(not found_previous_id):
         n_page += 1
+
         # Build the url with the page number
         found_previous_id, results = scraper.scrape(
-            f"{url}&page={n_page}", last_id)
+            f"{url}&page={n_page}", last_id, domain)
 
         # Build and send the messages via telegram
         for res in results:
             message = [
                 f"<a href='{res['url']}'><b>{res['title']}</b></a>\n",
-                f"Anno: {res['year']}\n",
-                f"Chilometraggio: {res['kilometers']}\n",
-                f"Potenza: {res['horsepower']}\n",
-                f"Cambio: {res['shift']}\n",
-                f"Carburante: {res['fuel']}\n",
-                f"Consumo: {res['fuel_consumption']}\n",
-                f"Condizione: {res['condition']}\n",
-                f"Proprietari: {res['owners']}\n",
-                f"Inquinamento: {res['co2']}\n",
-                f"Venditore: {res['seller_type']}\n",
-                f"Località: {res['seller_location']}\n",
-                f"<b>PREZZO</b>: €{res['price_euro']}\n"
+                f"{text[domain]['year']}: {res['year']}\n",
+                f"{text[domain]['kilometers']}: {res['kilometers']}\n",
+                f"{text[domain]['horsepower']}: {res['horsepower']}\n",
+                f"{text[domain]['shift']}: {res['shift']}\n",
+                f"{text[domain]['fuel']}: {res['fuel']}\n",
+                f"{text[domain]['fuel_consumption']}: {res['fuel_consumption']}\n",
+                f"{text[domain]['condition']}: {res['condition']}\n",
+                f"{text[domain]['owners']}: {res['owners']}\n",
+                f"{text[domain]['co2']}: {res['co2']}\n",
+                f"{text[domain]['seller_type']}: {res['seller_type']}\n",
+                f"{text[domain]['seller_location']}: {res['seller_location']}\n",
+                f"<b>{text[domain]['price']}</b>: €{res['price_euro']}\n"
             ]
             message = ''.join(message)
             dp = bot.get_dispatcher()

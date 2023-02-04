@@ -1,13 +1,15 @@
 from requests import request
 from bs4 import BeautifulSoup
+from re import sub
 
 
-def scrape(url, last_id):
+def scrape(url, last_id, domain):
     """
     Scrape the given url and extract all the listings
 
     :param url: Url to scrape
     :param last_id: ID of the last listing from the previously scraped results
+    :param domain: Domain of the website
     :return: True if the previous id was found (for pagination) and an array of car listings
     """
     res = request('get', url, headers={
@@ -16,21 +18,35 @@ def scrape(url, last_id):
                   'Accept-Encoding': 'gzip, deflate, br'
                   }
                   )
+    res.encoding = 'UTF-8'
     if res.ok:
         soup = BeautifulSoup(res.text, 'lxml')
         listings = soup.find_all("article")
         to_return = []
         found_previous_id = False
+        website = url.split("/")[2]
+
         for listing in listings:
             all_paragraphs = listing.find_all('p')
             all_spans = listing.find_all('span')
+
+            if domain in {"be", "en"}:
+                price = ".".join(all_paragraphs[0].string.split("€")[1].split(","))[:-2].lstrip()
+            else:
+                price = sub(r"\s+", '.', all_paragraphs[0].string.split("€")[1].split(",")[0].lstrip())
+
+            if domain in {"at", "fr", "pl", "cz", "hu", "ru", "bg", "se", "ua"}:
+                kilometers = sub(r"\s+", '.', all_spans[1].string, 1)
+            else:
+                kilometers = all_spans[1].string
+            
             if listing.get('id') != last_id:
                 auto = {
                     'id': listing.get('id'),
                     'title': listing.find('h2').contents[0] + " " + (listing.find('h2').next_sibling.string if listing.find('h2').next_sibling.string else ""),
-                    'price_euro': all_paragraphs[0].string.split("€")[1].split(",")[0].lstrip(),
-                    'classification': all_paragraphs[1].string,
-                    'kilometers': all_spans[1].string,
+                    'price_euro': price,
+                    'classification': all_paragraphs[1].string if len(all_paragraphs) > 1 else "-",
+                    'kilometers': kilometers,
                     'year': all_spans[2].string,
                     'horsepower': all_spans[3].string,
                     'condition': all_spans[4].string,
@@ -41,7 +57,7 @@ def scrape(url, last_id):
                     'co2': all_spans[9].string,
                     'seller_type': all_spans[10].contents[0],
                     'seller_location': all_spans[-1].string if all_spans[-1].string else "-",
-                    'url': "https://www.autoscout24.it" + listing.find('a').get('href')
+                    'url': "https://" + website + listing.find('a').get('href')
                 }
                 #auto['image'] = "".join(listing.find('img').get('src').rsplit("/")[:-1]) if listing.find('img') and len(next(listing.find('div').children).contents) > 0 else "-"
                 to_return.append(auto)
